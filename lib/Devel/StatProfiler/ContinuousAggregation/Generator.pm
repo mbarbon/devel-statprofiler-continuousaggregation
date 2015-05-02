@@ -13,12 +13,13 @@ use Devel::StatProfiler::Aggregator;
 
 sub generate_reports {
     my (%args) = @_;
-    my $reports = $args{reports};
+    my $aggregation_ids = $args{aggregation_ids};
     my $processes = $args{processes} // 1;
     my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
+    my $make_fetchers = $args{make_fetchers};
     my $compress = $args{compress};
     my $pm = Parallel::ForkManager->new($processes);
 
@@ -51,8 +52,7 @@ sub generate_reports {
     };
     $pm->run_on_finish($move_symlink);
 
-    for my $report (@$reports) {
-        my ($aggregation_id, $fetchers) = @$report;
+    for my $aggregation_id (@$aggregation_ids) {
         my $aggregation_directory = $root_directory . '/reports/' . $aggregation_id;
         my $changed = unlink $aggregation_directory . '/changed';
 
@@ -64,9 +64,6 @@ sub generate_reports {
             shards         => \@shards,
             flamegraph     => 1,
             serializer     => 'sereal',
-            !$fetchers ? () : (
-                fetchers     => $fetchers,
-            ),
         );
         $aggregator->_load_all_metadata; # so it does not happen for each child
         my $output_final = $root_directory . '/html/' . $aggregation_id;
@@ -83,8 +80,13 @@ sub generate_reports {
             $logger->info("Generating report for %s/%s", $aggregation_id, $report_id);
 
             my $report = $aggregator->merged_report($report_id, 'map_source');
+            my $fetchers = !$make_fetchers ? undef :
+                $make_fetchers->(
+                    aggregation_id  => $aggregation_id,
+                    metadata        => $report->metadata
+                );
             my $report_dir = $output_base . '/' . $report_id;
-            my $diagnostics = $report->output($report_dir, $compress);
+            my $diagnostics = $report->output($report_dir, $compress, $fetchers);
             for my $diagnostic (@$diagnostics) {
                 $logger->info('%s', $diagnostic);
             }

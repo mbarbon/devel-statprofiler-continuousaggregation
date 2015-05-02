@@ -81,9 +81,7 @@ sub generate_reports {
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         processes           => $self->{processes},
-        reports             => [map {
-            [$_, undef],
-        } @$aggregation_ids]
+        aggregation_ids     => $aggregation_ids,
     );
 }
 
