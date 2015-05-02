@@ -7,12 +7,10 @@ use File::Glob qw(bsd_glob);
 
 use Parallel::ForkManager;
 
-sub INFO { }
-sub WARN { }
-
 sub collect_sources {
     my (%args) = @_;
     my $processes = $args{processes} // 1;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
 
     my $target = $root_directory . '/sources';
@@ -23,7 +21,7 @@ sub collect_sources {
 
     File::Path::mkpath([$target]);
 
-    INFO "Getting the list of shared source code files";
+    $logger->info("Getting the list of shared source code files");
 
     my (%existing, %dead);
 
@@ -43,7 +41,7 @@ sub collect_sources {
     for my $source_dir (@source_dirs) {
         $pm->start and next; # do the fork
 
-        INFO "Compacting source code for %s", File::Basename::basename(File::Basename::dirname($source_dir));
+        $logger->info("Compacting source code for %s", File::Basename::basename(File::Basename::dirname($source_dir)));
 
         # this way the filesystem can use "small" symlinks
         symlink '../../../sources', "$source_dir/sources"
@@ -78,7 +76,7 @@ sub collect_sources {
 
     $pm->wait_all_children;
 
-    INFO "Removing dead source code";
+    $logger->info("Removing dead source code");
 
     for my $dead (keys %dead) {
         unlink "$target/$dead";
@@ -88,17 +86,18 @@ sub collect_sources {
 sub expire_data {
     my (%args) = @_;
     my $processes = $args{processes} // 1;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandato
 ry";
 
-    INFO "Deleting processed files";
+    $logger->info("Deleting processed files");
 
     my @processed = bsd_glob $root_directory . '/processed/*';
     for my $processed (@processed) {
         unlink $processed;
     }
 
-    INFO "Deleted processed files";
+    $logger->info("Deleted processed files");
 }
 
 1;

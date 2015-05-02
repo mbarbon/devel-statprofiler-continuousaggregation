@@ -11,13 +11,11 @@ use Parallel::ForkManager;
 
 use Devel::StatProfiler::Aggregator;
 
-sub INFO { }
-sub WARN { }
-
 sub generate_reports {
     my (%args) = @_;
     my $reports = $args{reports};
     my $processes = $args{processes} // 1;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
@@ -33,7 +31,7 @@ sub generate_reports {
             my ($aggregation_id, $output_base, $output_final) =
                 @{$data}{qw(aggregation_id output_base output_final)};
 
-            INFO "Report for %s generated", $aggregation_id;
+            $logger->info("Report for %s generated", $aggregation_id);
 
             if (-d $output_base) {
                 # this dance is to have atomic symlink replacement
@@ -46,9 +44,9 @@ sub generate_reports {
         return unless $exit || $signal;
 
         if ($id) {
-            WARN "Process %s (PID %d) exited with exit code %d, signal %d", $id, $pid, $exit, $signal;
+            $logger->warn("Process %s (PID %d) exited with exit code %d, signal %d", $id, $pid, $exit, $signal);
         } else {
-            WARN "PID %d exited with exit code %d, signal %d", $pid, $exit, $signal;
+            $logger->warn("PID %d exited with exit code %d, signal %d", $pid, $exit, $signal);
         }
     };
     $pm->run_on_finish($move_symlink);
@@ -74,7 +72,7 @@ sub generate_reports {
         my $output_final = $root_directory . '/html/' . $aggregation_id;
         my $output_base = $output_final . "." . $$ . "." . time;
 
-        INFO "Processing aggregation %s", $aggregation_id;
+        $logger->info("Processing aggregation %s", $aggregation_id);
 
         my @report_ids = $aggregator->all_reports;
         $pending{$aggregation_id} = scalar @report_ids;
@@ -82,13 +80,13 @@ sub generate_reports {
         for my $report_id (@report_ids) {
             $pm->start("$aggregation_id/$report_id") and next; # do the fork
 
-            INFO "Generating report for %s/%s", $aggregation_id, $report_id;
+            $logger->info("Generating report for %s/%s", $aggregation_id, $report_id);
 
             my $report = $aggregator->merged_report($report_id, 'map_source');
             my $report_dir = $output_base . '/' . $report_id;
             my $diagnostics = $report->output($report_dir, $compress);
             for my $diagnostic (@$diagnostics) {
-                INFO '%s', $diagnostic;
+                $logger->info('%s', $diagnostic);
             }
 
             $pm->finish(0, {
@@ -117,9 +115,9 @@ sub generate_reports {
         next unless @info; # somebody else was faster
 
         if ($info[9] > time - 1800) {
-            INFO "Not pruning recent report directory '%s'", $dead;
+            $logger->info("Not pruning recent report directory '%s'", $dead);
         } else {
-            INFO "Pruning report directory '%s'", $dead;
+            $logger->info("Pruning report directory '%s'", $dead);
 
             File::Path::rmtree($dead);
         }

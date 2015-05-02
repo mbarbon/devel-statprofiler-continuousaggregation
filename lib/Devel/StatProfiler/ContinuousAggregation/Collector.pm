@@ -10,17 +10,18 @@ use Parallel::ForkManager;
 
 use Devel::StatProfiler::Aggregator;
 
-sub INFO { }
-sub WARN { }
-
 sub _log_fatal_subprocess_error {
-    my ($pid, $exit, $id, $signal, $core) = @_;
-    return unless $exit || $signal;
+    my ($logger) = @_;
 
-    if ($id) {
-        WARN "Process %s (PID %d) exited with exit code %d, signal %d", $id, $pid, $exit, $signal;
-    } else {
-        WARN "PID %d exited with exit code %d, signal %d", $pid, $exit, $signal;
+    return sub {
+        my ($pid, $exit, $id, $signal, $core) = @_;
+        return unless $exit || $signal;
+
+        if ($id) {
+            $logger->warn("Process %s (PID %d) exited with exit code %d, signal %d", $id, $pid, $exit, $signal);
+        } else {
+            $logger->warn("PID %d exited with exit code %d, signal %d", $pid, $exit, $signal);
+        }
     }
 }
 
@@ -29,13 +30,14 @@ sub process_profiles {
     my $files = $args{files};
     my $processes = $args{processes} // 1;
     my $max_batch_size = $args{batch_size} // 5_000_000;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $shard = $args{shard} // die "Shard is mandatory";
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $pm = Parallel::ForkManager->new($processes);
 
-    $pm->run_on_finish(\&_log_fatal_subprocess_error);
+    $pm->run_on_finish(_log_fatal_subprocess_error($logger));
 
     File::Path::mkpath([$root_directory . '/processing/' . $shard]);
 
@@ -86,7 +88,7 @@ sub process_profiles {
                 my $final = $root_directory . '/processed/' . basename($path);
 
                 next unless rename($path, $intermediate);
-                INFO "Going to process %s", $path;
+                $logger->info("Going to process %s", $path);
 
                 eval {
                     $aggregator->process_trace_files($reader // $intermediate);
@@ -98,7 +100,7 @@ sub process_profiles {
 
                     # ignore this since there isn't much we can do about it
                     die if $error !~ /^Unexpected end-of-file /;
-                    INFO "Silencing error '%s'", $@;
+                    $logger->info("Silencing error '%s'", $@);
                 };
             }
 
@@ -117,6 +119,7 @@ sub merge_parts {
     my (%args) = @_;
     my $aggregation_ids = $args{aggregation_ids};
     my $processes = $args{processes} // 1;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $shard = $args{shard} // die "Shard is mandatory";
@@ -124,11 +127,11 @@ sub merge_parts {
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $pm = Parallel::ForkManager->new($processes);
 
-    $pm->run_on_finish(\&_log_fatal_subprocess_error);
+    $pm->run_on_finish(_log_fatal_subprocess_error($logger));
 
     my %aggregators;
     for my $aggregation_id (sort @$aggregation_ids) {
-        INFO "Preparing to merge metadata for report %s", $aggregation_id;
+        $logger->info("Preparing to merge metadata for report %s", $aggregation_id);
 
         my $report_directory = $root_directory . '/reports/' . $aggregation_id;
         my $report_parts_directory = $parts_directory . '/reports/' . $aggregation_id;
@@ -144,9 +147,9 @@ sub merge_parts {
 
         $pm->start($aggregation_id) and next; # do the fork
 
-        INFO "Merging metadata for report %s", $aggregation_id;
+        $logger->info("Merging metadata for report %s", $aggregation_id);
         $aggregator->merge_metadata;
-        INFO "Merged metadata for report %s", $aggregation_id;
+        $logger->info("Merged metadata for report %s", $aggregation_id);
 
         $pm->finish;
     }
@@ -164,7 +167,7 @@ sub merge_parts {
 
             $pm->start("$aggregation_id/$report_id") and next; # do the fork
 
-            INFO "Merging report for %s of rollout %s", $report_id, $aggregation_id;
+            $logger->info("Merging report for %s of rollout %s", $report_id, $aggregation_id);
 
             my $merged = $aggregator->merge_report(
                 $report_id,
@@ -185,6 +188,7 @@ sub merge_parts {
 
 sub changed_aggregation_ids {
     my (%args) = @_;
+    my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
 
     return [map File::Basename::basename($_),
