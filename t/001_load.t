@@ -2,8 +2,9 @@
 
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
+use_ok('Devel::StatProfiler::ContinuousAggregation::Fetcher::Git');
 use_ok('Devel::StatProfiler::ContinuousAggregation::Logger');
 use_ok('Devel::StatProfiler::ContinuousAggregation::Spool');
 use_ok('Devel::StatProfiler::ContinuousAggregation::Collector');
