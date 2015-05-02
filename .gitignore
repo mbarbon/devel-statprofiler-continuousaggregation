@@ -11,3 +11,5 @@
 /pod2htm?.tmp
 .*.sw*
 statprof.out.*
+/t/out/
+/t/aggregate/
