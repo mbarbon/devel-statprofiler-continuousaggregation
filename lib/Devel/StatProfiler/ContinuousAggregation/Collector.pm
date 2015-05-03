@@ -191,8 +191,9 @@ sub changed_aggregation_ids {
     my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
 
-    return [map File::Basename::basename($_),
-                bsd_glob $args{root_directory} . '/reports/*'];
+    return [map  File::Basename::basename($_),
+            grep -f "$_/changed",
+                 bsd_glob $args{root_directory} . '/reports/*'];
 }
 
 sub _touch { open my $fh, '>', $_[0] or die "Unable to touch timestamp of '$_[0]': $!" }
