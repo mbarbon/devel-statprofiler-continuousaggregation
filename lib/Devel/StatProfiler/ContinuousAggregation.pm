@@ -19,13 +19,19 @@ sub new {
         $args{formatted_logger} // Devel::StatProfiler::ContinuousAggregation::Logger->new($simple_logger);
     my $self = bless {
         root_directory  => $args{root_directory},
-        processes       => $args{processes},
+        processes       => $args{processes} // { default => 1 },
         shard           => $args{shard} // 'local',
         compress        => $args{compress},
         logger          => $formatted_logger,
     }, $class;
 
     return $self;
+}
+
+sub _processes_for {
+    my ($self, $topic) = @_;
+
+    return $self->{processes}{$topic} // $self->{processes}{default} // 1;
 }
 
 sub move_to_spool {
@@ -57,14 +63,14 @@ sub process_profiles {
     Devel::StatProfiler::ContinuousAggregation::Collector::process_profiles(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
-        processes           => $self->{processes},
+        processes           => $self->_processes_for('collection'),
         shard               => $self->{shard},
         files               => $files,
     );
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
-        processes           => $self->{processes},
+        processes           => $self->_processes_for('merging'),
         shard               => $self->{shard},
         aggregation_ids     => \@aggregation_ids,
     );
@@ -80,7 +86,7 @@ sub generate_reports {
     Devel::StatProfiler::ContinuousAggregation::Generator::generate_reports(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
-        processes           => $self->{processes},
+        processes           => $self->_processes_for('aggregation'),
         aggregation_ids     => $aggregation_ids,
     );
 }
@@ -91,7 +97,7 @@ sub collect_sources {
     Devel::StatProfiler::ContinuousAggregation::Housekeeper::collect_sources(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
-        processes           => $self->{processes},
+        processes           => $self->_processes_for('source_collection'),
     );
 }
 
@@ -101,7 +107,7 @@ sub expire_data {
     Devel::StatProfiler::ContinuousAggregation::Housekeeper::expire_data(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
-        processes           => $self->{processes},
+        processes           => $self->_processes_for('data_expiration'),
     );
 }
 
