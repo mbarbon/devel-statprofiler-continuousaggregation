@@ -19,7 +19,7 @@ sub to_spool {
     my $kind = $args{kind} // 'default';
     my $reader = Devel::StatProfiler::Reader->new($file);
     my $metadata = $reader->get_custom_metadata;
-    my $aggregation_id = $metadata->{aggregation_id} // 'default';
+    my $aggregation_id = $metadata->{aggregation_id} // $args{aggregation_id} // 'default';
 
     my $dest_dir = $root_directory . '/spool/' . $kind . '/' . $aggregation_id;
     my $dest = $dest_dir . '/' . $target;

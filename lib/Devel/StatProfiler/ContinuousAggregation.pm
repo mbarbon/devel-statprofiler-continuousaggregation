@@ -45,6 +45,7 @@ sub move_to_spool {
             logger          => $self->{logger},
             root_directory  => $self->{root_directory},
             kind            => $args{kind},
+            aggregation_id  => $args{aggregation_id},
             file            => $file,
         );
         unlink $file if $ok;
