@@ -28,7 +28,9 @@ sub generate_reports {
     my $move_symlink = sub {
         my ($pid, $exit, $id, $signal, $core, $data) = @_;
 
-        if (--$pending{$data->{aggregation_id}} == 0) {
+        # this condition means that we don't move the symlink unless all subreports
+        # are successful
+        if ($data->{aggregation_id} && --$pending{$data->{aggregation_id}} == 0) {
             my ($aggregation_id, $output_base, $output_final) =
                 @{$data}{qw(aggregation_id output_base output_final)};
 
