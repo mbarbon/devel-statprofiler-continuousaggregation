@@ -21,6 +21,7 @@ sub generate_reports {
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $make_fetchers = $args{make_fetchers};
     my $compress = $args{compress};
+    my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
 
     my %pending;
@@ -65,7 +66,7 @@ sub generate_reports {
             root_directory => $aggregation_directory,
             shards         => \@shards,
             flamegraph     => 1,
-            serializer     => 'sereal',
+            serializer     => $serializer,
         );
         $aggregator->_load_all_metadata; # so it does not happen for each child
         my $output_final = $root_directory . '/html/' . $aggregation_id;

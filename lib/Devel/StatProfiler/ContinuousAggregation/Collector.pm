@@ -35,6 +35,7 @@ sub process_profiles {
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $shard = $args{shard} // die "Shard is mandatory";
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
+    my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
@@ -77,7 +78,7 @@ sub process_profiles {
                         parts_directory     => $report_parts_directory,
                         shard               => $shard,
                         flamegraph          => 1,
-                        serializer          => 'sereal',
+                        serializer          => $serializer,
                     );
                     $current_process = $process;
                 }
@@ -125,6 +126,7 @@ sub merge_parts {
     my $shard = $args{shard} // die "Shard is mandatory";
     my $merge_prefixes = $args{merge_prefixes};
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
+    my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
@@ -140,7 +142,7 @@ sub merge_parts {
             parts_directory     => $report_parts_directory,
             shard               => $shard,
             flamegraph          => 1,
-            serializer          => 'sereal',
+            serializer          => $serializer,
         );
 
         $aggregators{$aggregation_id} = $aggregator;

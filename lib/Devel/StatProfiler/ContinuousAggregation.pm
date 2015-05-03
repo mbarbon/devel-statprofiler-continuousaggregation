@@ -24,6 +24,7 @@ sub new {
         processes       => $args{processes} // { default => 1 },
         shard           => $args{shard} // 'local',
         compress        => $args{compress},
+        serializer      => $args{serializer},
         logger          => $formatted_logger,
     }, $class;
 
@@ -70,6 +71,7 @@ sub process_profiles {
         shard               => $self->{shard},
         files               => $files,
         aggregator_class    => $self->{aggregator_class},
+        serializer          => $self->{serializer},
     );
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
@@ -78,6 +80,7 @@ sub process_profiles {
         shard               => $self->{shard},
         aggregation_ids     => \@aggregation_ids,
         aggregator_class    => $self->{aggregator_class},
+        serializer          => $self->{serializer},
     );
 }
 
@@ -95,6 +98,7 @@ sub generate_reports {
         aggregation_ids     => $aggregation_ids,
         make_fetchers       => $args{make_fetchers},
         aggregator_class    => $self->{aggregator_class},
+        serializer          => $self->{serializer},
     );
 }
 
