@@ -19,6 +19,8 @@ sub new {
         $args{formatted_logger} // Devel::StatProfiler::ContinuousAggregation::Logger->new($simple_logger);
     my $self = bless {
         root_directory  => $args{root_directory},
+        parts_directory => $args{parts_directory},
+        aggregator_class=> $args{aggregator_class},
         processes       => $args{processes} // { default => 1 },
         shard           => $args{shard} // 'local',
         compress        => $args{compress},
@@ -66,6 +68,7 @@ sub process_profiles {
         processes           => $self->_processes_for('collection'),
         shard               => $self->{shard},
         files               => $files,
+        aggregator_class    => $self->{aggregator_class},
     );
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
@@ -73,11 +76,12 @@ sub process_profiles {
         processes           => $self->_processes_for('merging'),
         shard               => $self->{shard},
         aggregation_ids     => \@aggregation_ids,
+        aggregator_class    => $self->{aggregator_class},
     );
 }
 
 sub generate_reports {
-    my ($self) = @_;
+    my ($self, %args) = @_;
     my $aggregation_ids = Devel::StatProfiler::ContinuousAggregation::Collector::changed_aggregation_ids(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
@@ -88,6 +92,8 @@ sub generate_reports {
         root_directory      => $self->{root_directory},
         processes           => $self->_processes_for('aggregation'),
         aggregation_ids     => $aggregation_ids,
+        make_fetchers       => $args{make_fetchers},
+        aggregator_class    => $self->{aggregator_class},
     );
 }
 
