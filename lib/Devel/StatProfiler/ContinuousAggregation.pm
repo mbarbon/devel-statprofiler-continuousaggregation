@@ -99,6 +99,7 @@ sub generate_reports {
         make_fetchers       => $args{make_fetchers},
         aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
+        compress            => $self->{compress},
     );
 }
 
