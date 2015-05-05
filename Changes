@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.03      2015-05-05 21:46:17 CEST
+
+    - Misc bugfixes
+
 0.02      2015-05-03 19:32:21 CEST
 
     - Removed Sereal requirement
