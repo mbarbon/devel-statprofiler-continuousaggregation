@@ -57,7 +57,7 @@ sub move_to_spool {
 }
 
 sub process_profiles {
-    my ($self) = @_;
+    my ($self, %args) = @_;
     my $files = Devel::StatProfiler::ContinuousAggregation::Spool::read_spool(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
@@ -81,6 +81,7 @@ sub process_profiles {
         aggregation_ids     => \@aggregation_ids,
         aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
+        merge_prefixes      => $args{merge_prefixes},
     );
 }
 
