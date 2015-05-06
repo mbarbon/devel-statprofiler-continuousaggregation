@@ -109,8 +109,9 @@ sub generate_reports {
 
     for my $symlink (grep $pending{$_} == 0, keys %pending) {
         my $target = readlink($root_directory . '/html/' . $symlink);
-        my @suspects = map File::Basename::basename($_),
-                           bsd_glob $root_directory . '/html/' . $symlink . '*';
+        my @suspects = grep /\Q$symlink\E\.[0-9]+\.[0-9]+$/,
+                       map  File::Basename::basename($_),
+                            bsd_glob $root_directory . '/html/' . $symlink . '*';
 
         push @delete, grep $_ ne $symlink && $_ ne $target, @suspects;
     }
