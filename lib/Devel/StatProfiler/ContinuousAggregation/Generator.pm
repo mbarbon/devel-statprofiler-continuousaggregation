@@ -105,27 +105,19 @@ sub generate_reports {
     $pm->wait_all_children;
 
     # delete old reports
-    my @paths = bsd_glob $root_directory . '/html/*';
-    my %directories; @directories{grep -d $_ && !-l $_, @paths} = ();
-    my @symlinks = grep -l $_, @paths;
+    my @delete;
 
-    for my $symlink (@symlinks) {
-        my $target = readlink $symlink;
+    for my $symlink (grep $pending{$_} == 0, keys %pending) {
+        my $target = readlink($root_directory . '/html/' . $symlink);
+        my @suspects = map File::Basename::basename($_),
+                           bsd_glob $root_directory . '/html/' . $symlink . '*';
 
-        delete $directories{$target};
+        push @delete, grep $_ ne $symlink && $_ ne $target, @suspects;
     }
 
-    for my $dead (sort keys %directories) {
-        my @info = stat($dead);
-        next unless @info; # somebody else was faster
-
-        if ($info[9] > time - 1800) {
-            $logger->info("Not pruning recent report directory '%s'", $dead);
-        } else {
-            $logger->info("Pruning report directory '%s'", $dead);
-
-            File::Path::rmtree($dead);
-        }
+    for my $delete (@delete) {
+        $logger->info("Pruning report directory '%s'", $delete);
+        File::Path::rmtree($root_directory . '/html/' . $delete);
     }
 }
 

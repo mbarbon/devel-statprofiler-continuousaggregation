@@ -78,6 +78,9 @@ ok(-l 't/aggregate/html/test2');
 my ($rep1a, $rep2a) = map readlink "t/aggregate/html/$_", qw(test1 test2);
 isnt($rep1a, $rep1b);
 is($rep2a, $rep2b);
+ok(!-d "t/aggregate/html/$rep1b");
+ok(-d "t/aggregate/html/$rep1a");
+ok(-d "t/aggregate/html/$rep2a");
 ok(-f 't/aggregate/html/test1/__main__/all_stacks_by_time.calls');
 ok(-f 't/aggregate/html/test2/__main__/all_stacks_by_time.calls');
 
