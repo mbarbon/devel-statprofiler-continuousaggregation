@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.04      2015-05-07 21:32:20 CEST
+
+    - Fix HTML report pruning code
+
 0.03      2015-05-05 21:46:17 CEST
 
     - Misc bugfixes
