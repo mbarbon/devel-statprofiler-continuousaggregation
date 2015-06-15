@@ -67,6 +67,7 @@ sub process_profiles {
     Devel::StatProfiler::ContinuousAggregation::Collector::process_profiles(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
+        parts_directory     => $self->{parts_directory},
         processes           => $self->_processes_for('collection'),
         shard               => $self->{shard},
         files               => $files,
@@ -76,6 +77,7 @@ sub process_profiles {
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
+        parts_directory     => $self->{parts_directory},
         processes           => $self->_processes_for('merging'),
         shard               => $self->{shard},
         aggregation_ids     => \@aggregation_ids,
