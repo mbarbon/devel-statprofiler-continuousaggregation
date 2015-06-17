@@ -160,7 +160,7 @@ sub merge_parts {
         my $report_parts_directory = $parts_directory . '/reports/' . $aggregation_id;
         my $aggregator = delete $aggregators{$aggregation_id};
 
-        for my $report_id ($aggregator->all_reports) {
+        for my $report_id ($aggregator->all_unmerged_reports) {
             {
                 # TODO encapsulate
                 my $parts_dir = $report_parts_directory . '/' . $report_id;
