@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.06      2015-06-17 11:19:26 CEST
+
+    - Fix aggregation bug when using a separate parts directory
+
 0.05      2015-06-15 20:31:57 CEST
 
     - Correctly propagate parts_directory value
