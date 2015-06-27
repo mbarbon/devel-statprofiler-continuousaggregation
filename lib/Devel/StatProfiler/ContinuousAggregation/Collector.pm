@@ -125,6 +125,7 @@ sub merge_parts {
     my $parts_directory = $args{parts_directory} // $args{root_directory};
     my $shard = $args{shard} // die "Shard is mandatory";
     my $merge_prefixes = $args{merge_prefixes};
+    my $merge_prefixes_again = $args{merge_prefixes_again};
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
@@ -175,6 +176,9 @@ sub merge_parts {
                 $report_id,
                 !$merge_prefixes ? () : (
                     remap         => [undef, $merge_prefixes],
+                ),
+                $merge_prefixes_again ? () : (
+                    remap_again   => 1,
                 ),
             );
             $aggregator->add_report_metadata($report_id, {

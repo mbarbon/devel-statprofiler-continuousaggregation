@@ -84,6 +84,7 @@ sub process_profiles {
         aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
         merge_prefixes      => $args{merge_prefixes},
+        merge_prefixes_again=> $args{merge_prefixes_again},
     );
 }
 
