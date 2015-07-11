@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.07      2015-07-11 18:46:42 CEST
+
+    - Add an option to re-apply function remapping
+
 0.06      2015-06-17 11:19:26 CEST
 
     - Fix aggregation bug when using a separate parts directory
