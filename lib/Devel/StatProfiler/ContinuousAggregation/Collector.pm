@@ -100,7 +100,20 @@ sub process_profiles {
                     my $error = $@ || "Zombie error";
 
                     # ignore this since there isn't much we can do about it
-                    die if $error !~ /^Unexpected end-of-file /;
+                    if ($error !~ /^Unexpected end-of-file /) {
+                        # try to salvage what we did so far
+                        eval {
+                            $aggregator->save_part;
+
+                            1;
+                        } or do {
+                            my $nested_error = $@ || "Zombie error";
+
+                            die $nested_error, " while saving aggregator after ", $error;
+                        };
+
+                        die $error;
+                    }
                     $logger->info("Silencing error '%s'", $@);
                 };
             }
