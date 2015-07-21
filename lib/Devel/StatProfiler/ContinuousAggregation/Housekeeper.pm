@@ -43,17 +43,15 @@ sub collect_sources {
 
         $logger->info("Compacting source code for %s", File::Basename::basename(File::Basename::dirname($source_dir)));
 
-        # this way the filesystem can use "small" symlinks
-        symlink '../../../sources', "$source_dir/sources"
-            unless -s "$source_dir/sources";
         my %undead;
         for my $file (bsd_glob "$source_dir/??/??/*") {
             next if index($file, '.') != -1;
             my ($dir, $hash) = $file =~ m{[/\\](..[/\\]..[/\\])($hex+)$}
                 or die "Unable to parse '$file'";
+            my ($nlink) = (stat($file))[3];
 
-            if (-f $file && !-l $file) {
-                my $final_link = "../../sources/$dir/$hash";
+            if ($nlink == 1 && -f $file && !-l $file) {
+                my $final_link = "../../../../../sources/$dir/$hash";
                 my $final_file = "$target/$dir/$hash";
                 my $temp_file = "$final_file.$$." . int(rand(2 ** 30));
                 my $temp_link = "$file.$$." . int(rand(2 ** 30));
@@ -63,8 +61,8 @@ sub collect_sources {
                     File::Copy::copy($file, $temp_file) or die "Unable to copy to temporary file '$temp_file': $!";
                     rename $temp_file, $final_file or die "Unable to rename '$temp_file' to '$final_file': $!";
                 }
-                # this dance is to have atomic symlink replacement
-                symlink $final_link, $temp_link or die "Unable to symlink '$temp_link': $!";
+                # this dance is to have atomic link replacement
+                link $final_link, $temp_link or die "Unable to symlink '$temp_link': $!";
                 rename $temp_link, $file or die "Unable to rename '$temp_link' to '$file': $!";
             }
 
