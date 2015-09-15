@@ -37,6 +37,7 @@ sub process_profiles {
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
+    my $timebox = $args{timebox};
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
 
@@ -79,6 +80,7 @@ sub process_profiles {
                         shard               => $shard,
                         flamegraph          => 1,
                         serializer          => $serializer,
+                        timebox             => $timebox,
                     );
                     $current_process = $process;
                 }
@@ -142,6 +144,7 @@ sub merge_parts {
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
     my $pm = Parallel::ForkManager->new($processes);
+    my $timebox = $args{timebox};
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
 
@@ -157,6 +160,7 @@ sub merge_parts {
             shard               => $shard,
             flamegraph          => 1,
             serializer          => $serializer,
+            timebox             => $timebox,
         );
 
         $aggregators{$aggregation_id} = $aggregator;

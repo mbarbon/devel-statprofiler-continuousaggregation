@@ -26,6 +26,7 @@ sub new {
         compress        => $args{compress},
         serializer      => $args{serializer},
         logger          => $formatted_logger,
+        timebox         => $args{timebox},
     }, $class;
 
     return $self;
@@ -73,6 +74,7 @@ sub process_profiles {
         files               => $files,
         aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
+        timebox             => $self->{timebox},
     );
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
@@ -85,6 +87,7 @@ sub process_profiles {
         serializer          => $self->{serializer},
         merge_prefixes      => $args{merge_prefixes},
         merge_prefixes_again=> $args{merge_prefixes_again},
+        timebox             => $self->{timebox},
     );
 }
 
@@ -104,6 +107,7 @@ sub generate_reports {
         aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
         compress            => $self->{compress},
+        timebox             => $self->{timebox},
     );
 }
 
