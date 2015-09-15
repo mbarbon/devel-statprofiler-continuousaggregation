@@ -51,7 +51,6 @@ sub collect_sources {
             my ($nlink) = (stat($file))[3];
 
             if ($nlink == 1 && -f $file && !-l $file) {
-                my $final_link = "../../../../../sources/$dir/$hash";
                 my $final_file = "$target/$dir/$hash";
                 my $temp_file = "$final_file.$$." . int(rand(2 ** 30));
                 my $temp_link = "$file.$$." . int(rand(2 ** 30));
@@ -62,7 +61,7 @@ sub collect_sources {
                     rename $temp_file, $final_file or die "Unable to rename '$temp_file' to '$final_file': $!";
                 }
                 # this dance is to have atomic link replacement
-                link $final_link, $temp_link or die "Unable to symlink '$temp_link': $!";
+                link $final_file, $temp_link or die "Unable to link '$temp_link': $!";
                 rename $temp_link, $file or die "Unable to rename '$temp_link' to '$file': $!";
             }
 
