@@ -27,6 +27,7 @@ sub new {
         serializer      => $args{serializer},
         logger          => $formatted_logger,
         timebox         => $args{timebox},
+        timebox_periods => $args{timebox_periods},
     }, $class;
 
     return $self;
@@ -128,6 +129,19 @@ sub expire_data {
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         processes           => $self->_processes_for('data_expiration'),
+    );
+}
+
+sub expire_timeboxed_data {
+    my ($self) = @_;
+
+    Devel::StatProfiler::ContinuousAggregation::Housekeeper::expire_timeboxed_data(
+        logger              => $self->{logger},
+        root_directory      => $self->{root_directory},
+        shard               => $self->{shard},
+        aggregator_class    => $self->{aggregator_class},
+        timebox             => $self->{timebox},
+        timebox_periods     => $self->{timebox_periods},
     );
 }
 
