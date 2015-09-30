@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.09      2015-09-30 22:32:16 CEST
+
+    - Add support for deleting old timeboxed data
+
 0.08      2015-09-17 08:43:33 CEST
 
     - Save partially-processed data when a profile file was incorrectly closed
