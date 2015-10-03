@@ -116,7 +116,6 @@ sub generate_reports {
         processes           => $self->_processes_for('aggregation'),
         aggregation_ids     => $aggregation_ids,
         make_fetchers       => $args{make_fetchers},
-        aggregator_class    => $self->{aggregator_class},
         serializer          => $self->{serializer},
         compress            => $self->{compress},
         timebox             => $self->{timebox},
@@ -161,7 +160,6 @@ sub expire_timeboxed_data {
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         shard               => $self->{shard},
-        aggregator_class    => $self->{aggregator_class},
         timebox             => $self->{timebox},
         timebox_periods     => $self->{timebox_periods},
     );

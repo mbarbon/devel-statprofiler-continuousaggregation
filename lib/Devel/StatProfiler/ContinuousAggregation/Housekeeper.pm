@@ -113,20 +113,19 @@ sub expire_timeboxed_data {
     my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $shard = $args{shard} // die "Shard is mandatory";
-    my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $timebox = $args{timebox} // die "Timebox is mandatory";
     my $timebox_periods = $args{timebox_periods} // die "Number of periods is mandatory";
 
     my @aggregation_dirs = bsd_glob $root_directory . '/reports/*';
 
     for my $aggregation_dir (@aggregation_dirs) {
-        my $aggregator = $aggregator_class->new(
+        my $aggregate = Devel::StatProfiler::Aggregate->new(
             root_directory => $aggregation_dir,
             shard          => $shard,
             timebox        => $timebox,
         );
 
-        for my $report_name (@{$aggregator->report_names}) {
+        for my $report_name (@{$aggregate->report_names}) {
             my @timeboxes = sort { $b->[0] <=> $a->[0] } map {
                 my (undef, $timestamp) = split /\./, File::Basename::basename($_, $shard);
 
