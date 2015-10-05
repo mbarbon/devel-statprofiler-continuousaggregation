@@ -47,6 +47,7 @@ sub move_to_spool {
         my $ok = Devel::StatProfiler::ContinuousAggregation::Spool::to_spool(
             logger          => $self->{logger},
             root_directory  => $self->{root_directory},
+            parts_directory => $self->{parts_directory},
             kind            => $args{kind},
             aggregation_id  => $args{aggregation_id},
             file            => $file,
@@ -60,23 +61,33 @@ sub move_to_spool {
 
 sub process_profiles {
     my ($self, %args) = @_;
-    my $files = Devel::StatProfiler::ContinuousAggregation::Spool::read_spool(
+    my $root_files = Devel::StatProfiler::ContinuousAggregation::Spool::read_spool(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
+        local_spool         => 0,
     );
-    my @aggregation_ids = uniq map $_->[0], @$files;
-
-    Devel::StatProfiler::ContinuousAggregation::Collector::process_profiles(
+    my $local_files = $self->{parts_directory} ? Devel::StatProfiler::ContinuousAggregation::Spool::read_spool(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         parts_directory     => $self->{parts_directory},
-        processes           => $self->_processes_for('collection'),
-        shard               => $self->{shard},
-        files               => $files,
-        aggregator_class    => $self->{aggregator_class},
-        serializer          => $self->{serializer},
-        timebox             => $self->{timebox},
-    );
+        local_spool         => 1,
+    ) : [];
+    my @aggregation_ids = uniq map $_->[0], (@$root_files, @$local_files);
+
+    for my $files ($root_files, $local_files) {
+        Devel::StatProfiler::ContinuousAggregation::Collector::process_profiles(
+            logger              => $self->{logger},
+            root_directory      => $self->{root_directory},
+            parts_directory     => $self->{parts_directory},
+            processes           => $self->_processes_for('collection'),
+            shard               => $self->{shard},
+            files               => $files,
+            local_spool         => $files == $local_files,
+            aggregator_class    => $self->{aggregator_class},
+            serializer          => $self->{serializer},
+            timebox             => $self->{timebox},
+        );
+    }
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
@@ -142,6 +153,17 @@ sub expire_timeboxed_data {
         aggregator_class    => $self->{aggregator_class},
         timebox             => $self->{timebox},
         timebox_periods     => $self->{timebox_periods},
+    );
+}
+
+sub move_to_global_spool {
+    my ($self, %args) = @_;
+
+    Devel::StatProfiler::ContinuousAggregation::Spool::move_to_global_spool(
+        logger              => $self->{logger},
+        root_directory      => $self->{root_directory},
+        parts_directory     => $self->{parts_directory},
+        local_spool_life    => $args{local_spool_life},
     );
 }
 

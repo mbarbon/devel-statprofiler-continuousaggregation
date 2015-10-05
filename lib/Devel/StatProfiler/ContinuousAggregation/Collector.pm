@@ -36,12 +36,14 @@ sub process_profiles {
     my $shard = $args{shard} // die "Shard is mandatory";
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
+    my $local_spool = $args{local_spool};
     my $pm = Parallel::ForkManager->new($processes);
     my $timebox = $args{timebox};
+    my $base_directory = $local_spool ? $parts_directory : $root_directory;
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
 
-    File::Path::mkpath([$root_directory . '/processing/' . $shard]);
+    File::Path::mkpath([$base_directory . '/processing/' . $shard]);
 
     my %batches;
     {
@@ -87,8 +89,8 @@ sub process_profiles {
 
                 next unless $aggregator->can_process_trace_file($reader // $path);
 
-                my $intermediate = $root_directory . '/processing/' . $shard . '/' . basename($path);
-                my $final = $root_directory . '/processed/' . basename($path);
+                my $intermediate = $base_directory . '/processing/' . $shard . '/' . basename($path);
+                my $final = $base_directory . '/processed/' . basename($path);
 
                 next unless rename($path, $intermediate);
                 $logger->info("Going to process %s", $path);
