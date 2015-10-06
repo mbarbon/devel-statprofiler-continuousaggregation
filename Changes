@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.11      2015-10-06 11:33:13 CEST
+
+    - Add helper method to clean up processed local files
+
 0.10      2015-10-05 12:20:55 CEST
 
     - Add support for a local spool directory
