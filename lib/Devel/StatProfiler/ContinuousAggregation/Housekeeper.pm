@@ -80,21 +80,32 @@ sub collect_sources {
     }
 }
 
-sub expire_data {
-    my (%args) = @_;
-    my $processes = $args{processes} // 1;
+sub _expire_data {
+    my ($base_directory, %args) = @_;
     my $logger = $args{logger} // die "Logger is mandatory";
-    my $root_directory = $args{root_directory} // die "Root directory is mandato
-ry";
 
-    $logger->info("Deleting processed files");
+    $logger->info("Deleting processed files from '%s'", $base_directory);
 
-    my @processed = bsd_glob $root_directory . '/processed/*';
+    my @processed = bsd_glob $base_directory . '/processed/*';
     for my $processed (@processed) {
         unlink $processed;
     }
 
-    $logger->info("Deleted processed files");
+    $logger->info("Deleted processed files from '%s'", $base_directory);
+}
+
+sub expire_stale_local_data {
+    my (%args) = @_;
+    my $parts_directory = $args{parts_directory} // die "Parts directory is mandatory";;
+
+    _expire_data($parts_directory, %args);
+}
+
+sub expire_stale_data {
+    my (%args) = @_;
+    my $root_directory = $args{root_directory} // die "Root directory is mandatory";
+
+    _expire_data($root_directory, %args);
 }
 
 sub expire_timeboxed_data {

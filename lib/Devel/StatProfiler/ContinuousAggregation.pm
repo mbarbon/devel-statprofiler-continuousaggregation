@@ -133,12 +133,23 @@ sub collect_sources {
     );
 }
 
-sub expire_data {
+sub expire_stale_data {
     my ($self) = @_;
 
-    Devel::StatProfiler::ContinuousAggregation::Housekeeper::expire_data(
+    Devel::StatProfiler::ContinuousAggregation::Housekeeper::expire_stale_data(
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
+        processes           => $self->_processes_for('data_expiration'),
+    );
+}
+
+sub expire_stale_local_data {
+    my ($self) = @_;
+
+    Devel::StatProfiler::ContinuousAggregation::Housekeeper::expire_stale_local_data(
+        logger              => $self->{logger},
+        root_directory      => $self->{root_directory},
+        parts_directory     => $self->{parts_directory},
         processes           => $self->_processes_for('data_expiration'),
     );
 }
