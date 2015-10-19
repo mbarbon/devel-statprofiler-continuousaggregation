@@ -83,7 +83,7 @@ sub generate_reports {
 
             $logger->info("Generating report for %s/%s", $aggregation_id, $report_id);
 
-            my $report = $aggregate->merged_report($report_id, 'map_source');
+            my $report = $aggregate->merged_report($report_id);
             my $fetchers = !$make_fetchers ? undef :
                 $make_fetchers->(
                     aggregation_id  => $aggregation_id,
