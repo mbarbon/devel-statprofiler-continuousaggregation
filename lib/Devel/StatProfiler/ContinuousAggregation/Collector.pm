@@ -9,6 +9,7 @@ use File::Glob qw(bsd_glob);
 use Parallel::ForkManager;
 
 use Devel::StatProfiler::Aggregator;
+use Devel::StatProfiler::NameMap;
 
 sub _log_fatal_subprocess_error {
     my ($logger) = @_;
@@ -39,6 +40,7 @@ sub process_profiles {
     my $local_spool = $args{local_spool};
     my $pm = Parallel::ForkManager->new($processes);
     my $timebox = $args{timebox};
+    my $map_names = $args{map_names};
     my $base_directory = $local_spool ? $parts_directory : $root_directory;
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
@@ -62,7 +64,34 @@ sub process_profiles {
         }
     }
 
+    my %mappers;
     for my $aggregation_id (sort keys %batches) {
+        my $mapper = $mappers{$aggregation_id};
+
+        if (!$mapper) {
+            $logger->info("Building mapper for %s", $aggregation_id);
+
+            my $aggregation_directory = $root_directory . '/reports/' . $aggregation_id;
+            my @shards = Devel::StatProfiler::Aggregate->shards($aggregation_directory);
+            my $aggregate = Devel::StatProfiler::Aggregate->new(
+                root_directory => $aggregation_directory,
+                shards         => \@shards,
+                flamegraph     => 1,
+                serializer     => $serializer,
+                timebox        => $timebox,
+            );
+
+            # TODO add a public method
+            $aggregate->_load_genealogy;
+            $aggregate->_load_source;
+
+            $mapper = Devel::StatProfiler::NameMap->new(
+                names   => $map_names,
+                source  => $aggregate->{source},
+            );
+            $mappers{$aggregation_id} = $mapper;
+        }
+
         for my $batch (sort keys %{$batches{$aggregation_id}}) {
             $pm->start and next; # do the fork
 
@@ -83,6 +112,7 @@ sub process_profiles {
                         flamegraph          => 1,
                         serializer          => $serializer,
                         timebox             => $timebox,
+                        mapper              => $mapper,
                     );
                     $current_process = $process;
                 }

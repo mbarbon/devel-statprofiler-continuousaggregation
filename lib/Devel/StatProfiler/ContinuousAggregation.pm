@@ -86,6 +86,7 @@ sub process_profiles {
             aggregator_class    => $self->{aggregator_class},
             serializer          => $self->{serializer},
             timebox             => $self->{timebox},
+            map_names           => $args{map_names},
         );
     }
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
