@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.12      2015-10-22 21:21:24 CEST
+
+    - Fixes for Devel::StatProfiler 0.40
+    - Perform name mapping during the initial aggregation
+
 0.11      2015-10-06 11:33:13 CEST
 
     - Add helper method to clean up processed local files
