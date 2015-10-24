@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.13      2015-10-24 19:42:20 CEST
+
+    - Don't perform (now unnecessary) eval remapping during rendering
+
 0.12      2015-10-22 21:21:24 CEST
 
     - Fixes for Devel::StatProfiler 0.40
