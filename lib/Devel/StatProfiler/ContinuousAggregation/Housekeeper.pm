@@ -148,4 +148,39 @@ sub expire_timeboxed_data {
     }
 }
 
+sub cleanup_old_reports {
+    my (%args) = @_;
+    my $logger = $args{logger} // die "Logger is mandatory";
+    my $root_directory = $args{root_directory} // die "Root directory is mandatory";
+    my $processes = $args{processes} // 1;
+    my @delete;
+
+    for my $symlink_full (grep -l $_, bsd_glob $root_directory . '/html/*') {
+        my $target_full = Cwd::abs_path($symlink_full);
+        my $change_time = -M $target_full;
+        my $symlink = File::Basename::basename($symlink_full);
+        my $target = File::Basename::basename($target_full);
+        my @suspects = grep /\Q$symlink\E\.[0-9]+\.[0-9]+$/,
+                       map  File::Basename::basename($_),
+                            bsd_glob $root_directory . '/html/' . $symlink . '.*';
+
+        push @delete, grep { $_ ne $symlink && $_ ne $target &&
+                             -M $root_directory . '/html/' . $_ > $change_time }
+                           @suspects;
+    }
+
+    my $pm = Parallel::ForkManager->new($processes);
+
+    for my $delete (@delete) {
+        $pm->start and next; # do the fork
+
+        $logger->info("Pruning report directory '%s'", $delete);
+        File::Path::rmtree($root_directory . '/html/' . $delete);
+
+        $pm->finish;
+    }
+
+    $pm->wait_all_children;
+}
+
 1;

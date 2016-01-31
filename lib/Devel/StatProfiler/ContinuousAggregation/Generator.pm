@@ -104,23 +104,6 @@ sub generate_reports {
     }
 
     $pm->wait_all_children;
-
-    # delete old reports
-    my @delete;
-
-    for my $symlink (grep $pending{$_} == 0, keys %pending) {
-        my $target = readlink($root_directory . '/html/' . $symlink);
-        my @suspects = grep /\Q$symlink\E\.[0-9]+\.[0-9]+$/,
-                       map  File::Basename::basename($_),
-                            bsd_glob $root_directory . '/html/' . $symlink . '*';
-
-        push @delete, grep $_ ne $symlink && $_ ne $target, @suspects;
-    }
-
-    for my $delete (@delete) {
-        $logger->info("Pruning report directory '%s'", $delete);
-        File::Path::rmtree($root_directory . '/html/' . $delete);
-    }
 }
 
 1;

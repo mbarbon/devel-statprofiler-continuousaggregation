@@ -55,6 +55,7 @@ ok(-d 't/aggregate/reports/test1/__main__');
 ok(-d 't/aggregate/reports/test2/__main__');
 
 $aggregator->generate_reports;
+$aggregator->cleanup_old_reports;
 ok(-l 't/aggregate/html/test1');
 ok(-l 't/aggregate/html/test2');
 my ($rep1b, $rep2b) = map readlink "t/aggregate/html/$_", qw(test1 test2);
@@ -73,6 +74,7 @@ ok(all { -f "t/aggregate/processed/$_" } $profile3);
 ok(_is_empty("t/aggregate/spool/default/test1"));
 
 $aggregator->generate_reports;
+$aggregator->cleanup_old_reports;
 ok(-l 't/aggregate/html/test1');
 ok(-l 't/aggregate/html/test2');
 my ($rep1a, $rep2a) = map readlink "t/aggregate/html/$_", qw(test1 test2);

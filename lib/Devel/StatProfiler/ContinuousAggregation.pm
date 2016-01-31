@@ -166,6 +166,16 @@ sub expire_timeboxed_data {
     );
 }
 
+sub cleanup_old_reports {
+    my ($self) = @_;
+
+    Devel::StatProfiler::ContinuousAggregation::Housekeeper::cleanup_old_reports(
+        logger              => $self->{logger},
+        root_directory      => $self->{root_directory},
+        processes           => $self->_processes_for('data_expiration'),
+    );
+}
+
 sub move_to_global_spool {
     my ($self, %args) = @_;
 
