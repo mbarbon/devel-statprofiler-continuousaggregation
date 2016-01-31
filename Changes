@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.14      2016-01-31 22:12:37 CET
+
+    - Perform report cleanup in parallel
+
 0.13      2015-10-24 19:42:20 CEST
 
     - Don't perform (now unnecessary) eval remapping during rendering
