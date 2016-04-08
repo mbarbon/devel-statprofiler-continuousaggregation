@@ -28,6 +28,7 @@ sub new {
         logger          => $formatted_logger,
         timebox         => $args{timebox},
         timebox_periods => $args{timebox_periods},
+        run_pre_fork    => $args{run_pre_fork},
     }, $class;
 
     return $self;
@@ -87,6 +88,7 @@ sub process_profiles {
             serializer          => $self->{serializer},
             timebox             => $self->{timebox},
             map_names           => $args{map_names},
+            run_pre_fork        => $self->{run_pre_fork},
         );
     }
     Devel::StatProfiler::ContinuousAggregation::Collector::merge_parts(
@@ -101,6 +103,7 @@ sub process_profiles {
         merge_prefixes      => $args{merge_prefixes},
         merge_prefixes_again=> $args{merge_prefixes_again},
         timebox             => $self->{timebox},
+        run_pre_fork        => $self->{run_pre_fork},
     );
 }
 
@@ -120,6 +123,7 @@ sub generate_reports {
         serializer          => $self->{serializer},
         compress            => $self->{compress},
         timebox             => $self->{timebox},
+        run_pre_fork        => $self->{run_pre_fork},
     );
 }
 
@@ -130,6 +134,7 @@ sub collect_sources {
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         processes           => $self->_processes_for('source_collection'),
+        run_pre_fork        => $self->{run_pre_fork},
     );
 }
 
@@ -173,6 +178,7 @@ sub cleanup_old_reports {
         logger              => $self->{logger},
         root_directory      => $self->{root_directory},
         processes           => $self->_processes_for('data_expiration'),
+        run_pre_fork        => $self->{run_pre_fork},
     );
 }
 

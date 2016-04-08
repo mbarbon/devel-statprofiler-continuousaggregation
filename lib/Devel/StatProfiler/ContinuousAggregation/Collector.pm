@@ -6,7 +6,7 @@ use warnings;
 use File::Basename qw(basename);
 use File::Glob qw(bsd_glob);
 
-use Parallel::ForkManager;
+use Devel::StatProfiler::ContinuousAggregation::ForkManager;
 
 use Devel::StatProfiler::Aggregator;
 use Devel::StatProfiler::NameMap;
@@ -38,12 +38,14 @@ sub process_profiles {
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
     my $local_spool = $args{local_spool};
-    my $pm = Parallel::ForkManager->new($processes);
+    my $pre_fork = $args{run_pre_fork};
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
     my $timebox = $args{timebox};
     my $map_names = $args{map_names};
     my $base_directory = $local_spool ? $parts_directory : $root_directory;
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
+    $pm->run_on_before_start($pre_fork);
 
     File::Path::mkpath([$base_directory . '/processing/' . $shard]);
 
@@ -175,10 +177,12 @@ sub merge_parts {
     my $merge_prefixes_again = $args{merge_prefixes_again};
     my $aggregator_class = $args{aggregator_class} // 'Devel::StatProfiler::Aggregator';
     my $serializer = $args{serializer};
-    my $pm = Parallel::ForkManager->new($processes);
+    my $pre_fork = $args{run_pre_fork};
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
     my $timebox = $args{timebox};
 
     $pm->run_on_finish(_log_fatal_subprocess_error($logger));
+    $pm->run_on_before_start($pre_fork);
 
     my %aggregators;
     for my $aggregation_id (sort @$aggregation_ids) {

@@ -7,7 +7,7 @@ use autodie qw(symlink rename);
 use File::Basename qw(basename);
 use File::Glob qw(bsd_glob);
 
-use Parallel::ForkManager;
+use Devel::StatProfiler::ContinuousAggregation::ForkManager;
 
 use Devel::StatProfiler::Aggregator;
 
@@ -21,7 +21,8 @@ sub generate_reports {
     my $make_fetchers = $args{make_fetchers};
     my $compress = $args{compress};
     my $serializer = $args{serializer};
-    my $pm = Parallel::ForkManager->new($processes);
+    my $pre_fork = $args{run_pre_fork};
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
     my $timebox = $args{timebox};
 
     my %pending;
@@ -54,6 +55,7 @@ sub generate_reports {
         }
     };
     $pm->run_on_finish($move_symlink);
+    $pm->run_on_before_start($pre_fork);
 
     for my $aggregation_id (@$aggregation_ids) {
         my $aggregation_directory = $root_directory . '/reports/' . $aggregation_id;

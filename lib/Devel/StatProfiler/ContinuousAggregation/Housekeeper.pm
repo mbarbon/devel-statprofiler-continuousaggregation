@@ -5,19 +5,20 @@ use warnings;
 
 use File::Glob qw(bsd_glob);
 
-use Parallel::ForkManager;
+use Devel::StatProfiler::ContinuousAggregation::ForkManager;
 
 sub collect_sources {
     my (%args) = @_;
     my $processes = $args{processes} // 1;
     my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
+    my $pre_fork = $args{run_pre_fork};
 
     my $target = $root_directory . '/sources';
     my @source_dirs = bsd_glob $root_directory . '/reports/*/__source__';
     my $hex = '[0-9a-fA-F]';
 
-    my $pm = Parallel::ForkManager->new($processes);
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
 
     File::Path::mkpath([$target]);
 
@@ -30,6 +31,7 @@ sub collect_sources {
 
         delete $dead{$_} for keys %$undead;
     });
+    $pm->run_on_before_start($pre_fork);
 
     for my $file (bsd_glob $target . '/??/??/*') {
         my ($dir, $hash) = $file =~ m{[/\\](..[/\\]..[/\\])($hex+)$}
@@ -153,6 +155,7 @@ sub cleanup_old_reports {
     my $logger = $args{logger} // die "Logger is mandatory";
     my $root_directory = $args{root_directory} // die "Root directory is mandatory";
     my $processes = $args{processes} // 1;
+    my $pre_fork = $args{run_pre_fork};
     my @delete;
 
     for my $symlink_full (grep -l $_, bsd_glob $root_directory . '/html/*') {
@@ -169,7 +172,9 @@ sub cleanup_old_reports {
                            @suspects;
     }
 
-    my $pm = Parallel::ForkManager->new($processes);
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
+
+    $pm->run_on_before_start($pre_fork);
 
     for my $delete (@delete) {
         $pm->start and next; # do the fork
