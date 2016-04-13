@@ -84,6 +84,7 @@ sub process_profiles {
             shard               => $self->{shard},
             files               => $files,
             local_spool         => $files == $local_files,
+            batch_size          => $args{batch_size},
             aggregator_class    => $self->{aggregator_class},
             serializer          => $self->{serializer},
             timebox             => $self->{timebox},
