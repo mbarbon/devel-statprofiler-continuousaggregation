@@ -66,33 +66,27 @@ sub process_profiles {
         }
     }
 
-    my %mappers;
     for my $aggregation_id (sort keys %batches) {
-        my $mapper = $mappers{$aggregation_id};
+        $logger->info("Building mapper for %s", $aggregation_id);
 
-        if (!$mapper) {
-            $logger->info("Building mapper for %s", $aggregation_id);
+        my $aggregation_directory = $root_directory . '/reports/' . $aggregation_id;
+        my @shards = Devel::StatProfiler::Aggregate->shards($aggregation_directory);
+        my $aggregate = Devel::StatProfiler::Aggregate->new(
+            root_directory => $aggregation_directory,
+            shards         => \@shards,
+            flamegraph     => 1,
+            serializer     => $serializer,
+            timebox        => $timebox,
+        );
 
-            my $aggregation_directory = $root_directory . '/reports/' . $aggregation_id;
-            my @shards = Devel::StatProfiler::Aggregate->shards($aggregation_directory);
-            my $aggregate = Devel::StatProfiler::Aggregate->new(
-                root_directory => $aggregation_directory,
-                shards         => \@shards,
-                flamegraph     => 1,
-                serializer     => $serializer,
-                timebox        => $timebox,
-            );
+        # TODO add a public method
+        $aggregate->_load_genealogy;
+        $aggregate->_load_source;
 
-            # TODO add a public method
-            $aggregate->_load_genealogy;
-            $aggregate->_load_source;
-
-            $mapper = Devel::StatProfiler::NameMap->new(
-                names   => $map_names,
-                source  => $aggregate->{source},
-            );
-            $mappers{$aggregation_id} = $mapper;
-        }
+        my $mapper = Devel::StatProfiler::NameMap->new(
+            names   => $map_names,
+            source  => $aggregate->{source},
+        );
 
         for my $batch (sort keys %{$batches{$aggregation_id}}) {
             $pm->start and next; # do the fork
