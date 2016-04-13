@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.17      2016-04-13 16:40:31 CEST
+
+    - Reduce memory usage a bit
+
 0.16      2016-04-13 15:33:31 CEST
 
     - Allow customizing batch size during collection
