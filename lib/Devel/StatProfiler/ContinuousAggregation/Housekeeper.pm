@@ -34,8 +34,12 @@ sub collect_sources {
     $pm->run_on_before_start($pre_fork);
 
     for my $file (bsd_glob $target . '/??/??/*') {
-        my ($dir, $hash) = $file =~ m{[/\\](..[/\\]..[/\\])($hex+)$}
-            or die "Unable to parse '$file'";
+        my ($dir, $hash) = $file =~ m{[/\\](..[/\\]..[/\\])($hex+)$};
+        if (!$hash) {
+            warn "Unable to parse '$file': unlinking it";
+            unlink $file;
+            next;
+        }
 
         $existing{"$dir/$hash"} = $dead{"$dir/$hash"} = 1;
     }
