@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.18      2016-10-24 13:01:05 CEST
+
+    - Fix handling of leftover temporary files in the shared
+      source folder
+
 0.17      2016-04-13 16:40:31 CEST
 
     - Reduce memory usage a bit
