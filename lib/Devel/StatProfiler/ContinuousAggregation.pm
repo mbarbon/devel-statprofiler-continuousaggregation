@@ -139,6 +139,17 @@ sub collect_sources {
     );
 }
 
+sub pack_sources {
+    my ($self) = @_;
+
+    Devel::StatProfiler::ContinuousAggregation::Housekeeper::pack_sources(
+        logger              => $self->{logger},
+        root_directory      => $self->{root_directory},
+        processes           => $self->_processes_for('source_collection'),
+        run_pre_fork        => $self->{run_pre_fork},
+    );
+}
+
 sub expire_stale_data {
     my ($self) = @_;
 

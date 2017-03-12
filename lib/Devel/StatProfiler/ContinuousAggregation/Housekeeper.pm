@@ -6,6 +6,7 @@ use warnings;
 use File::Glob qw(bsd_glob);
 
 use Devel::StatProfiler::ContinuousAggregation::ForkManager;
+use Devel::StatProfiler::EvalSourceStorage;
 
 sub collect_sources {
     my (%args) = @_;
@@ -84,6 +85,36 @@ sub collect_sources {
     for my $dead (keys %dead) {
         unlink "$target/$dead";
     }
+}
+
+sub pack_sources {
+    my (%args) = @_;
+    my $processes = $args{processes} // 1;
+    my $logger = $args{logger} // die "Logger is mandatory";
+    my $root_directory = $args{root_directory} // die "Root directory is mandatory";
+    my $pre_fork = $args{run_pre_fork};
+
+    my @source_dirs = bsd_glob $root_directory . '/reports/*/__source__';
+    my $hex = '[0-9a-fA-F]';
+
+    my $pm = Devel::StatProfiler::ContinuousAggregation::ForkManager->new($processes);
+
+    $pm->run_on_before_start($pre_fork);
+
+    for my $source_dir (@source_dirs) {
+        $pm->start and next; # do the fork
+
+        $logger->info("Packing source code for %s", File::Basename::basename(File::Basename::dirname($source_dir)));
+
+        my $storage = Devel::StatProfiler::EvalSourceStorage->new(
+            base_dir => $source_dir,
+        );
+        $storage->pack_files;
+
+        $pm->finish(0);
+    }
+
+    $pm->wait_all_children;
 }
 
 sub _expire_data {
